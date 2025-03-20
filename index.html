@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src='https://g.alicdn.com/code/npm/@ali/dingtalk-h5-remote-debug/0.1.3/index.js'></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>积木积分管理</title>
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.10.3/dingtalk.open.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f4f4f4; 
+            position: relative; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+        }
+        #userInfo { 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        #avatar { 
+            width: 100px; 
+            border-radius: 50%; 
+        }
+        #points { 
+            text-align: center; 
+            margin: 20px 0; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: color 0.3s; 
+        }
+        #points:hover { 
+            color: #3498db; 
+        }
+        #giftList { 
+            margin-bottom: 20px; 
+        }
+        .gift-item { 
+            display: flex; 
+            align-items: center; 
+            background-color: #fff; 
+            padding: 10px; 
+            margin-bottom: 5px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+        }
+        .gift-item img { 
+            width: 60px; 
+            height: 60px; 
+            margin-right: 10px; 
+            border-radius: 5px; 
+        }
+        #orderSection { 
+            margin-top: 20px; 
+            flex-grow: 1; 
+        }
+        #orderToggle { 
+            background-color: #fff; 
+            padding: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            color: #333; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            transition: background-color 0.3s; 
+        }
+        #orderToggle:hover { 
+            background-color: #f0f0f0; 
+        }
+        #orderList { 
+            display: none; 
+            background-color: #fff; 
+            padding: 10px; 
+            margin-top: 5px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+        .order-item { 
+            display: flex; 
+            flex-wrap: wrap; 
+            padding: 10px; 
+            border-bottom: 1px solid #eee; 
+            font-size: 14px; 
+            color: #555; 
+            line-height: 1.5; 
+        }
+        .order-item div { 
+            flex: 1 1 100%; 
+            margin-bottom: 5px; 
+        }
+        @media (min-width: 600px) { 
+            .order-item div { 
+                flex: 1 1 20%; 
+                margin-bottom: 0; 
+            }
+        }
+        #settings-icon { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            font-size: 24px; 
+            color: #333; 
+            cursor: pointer; 
+            background-color: #fff; 
+            width: 40px; 
+            height: 40px; 
+            line-height: 40px; 
+            text-align: center; 
+            border-radius: 50%; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            transition: color 0.3s; 
+        }
+        #settings-icon:before { 
+            content: "⚙"; 
+        }
+        #settings-icon:hover { 
+            color: #3498db; 
+        }
+        .footer { 
+            text-align: center; 
+            font-weight: bold; 
+            color: #aaa; 
+            font-size: 14px; 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            padding: 10px 0; 
+            z-index: 1000; 
+        }
+        .tooltip {
+            position: fixed;
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+            z-index: 1001;
+        }
+        .footer span {
+            cursor: pointer;
+        }
+        .settings-menu {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1002;
+        }
+        .settings-menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #333;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .settings-menu-item:hover {
+            background-color: #f0f0f0;
+        }
+        .dark-mode {
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .dark-mode #userInfo, 
+        .dark-mode #points, 
+        .dark-mode #giftList, 
+        .dark-mode #orderSection, 
+        .dark-mode .footer {
+            color: #fff;
+        }
+        .dark-mode .gift-item, 
+        .dark-mode #orderToggle, 
+        .dark-mode #orderList {
+            background-color: #2e2e2e;
+            color: #fff;
+        }
+        .dark-mode #orderToggle:hover {
+            background-color: #3e3e3e;
+        }
+        .dark-mode #settings-icon {
+            background-color: #2e2e2e;
+            color: #fff;
+        }
+        .dark-mode .settings-menu {
+            background-color: #2e2e2e;
+        }
+        .dark-mode .settings-menu-item {
+            color: #fff;
+        }
+        .dark-mode .settings-menu-item:hover {
+            background-color: #3e3e3e;
+        }
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        #loadingOverlay img {
+            width: 100px;
+            height: 100px;
+        }
+        #loadingOverlay p {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #666;
+            text-align: center;
+            max-width: 80%;
+        }
+        .dark-mode #loadingOverlay {
+            background-color: #1e1e1e;
+        }
+        .dark-mode #loadingOverlay p {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay">
+        <img src="/uploads/loading.gif" alt="Loading">
+        <p id="hitokoto"></p> <!-- 初始为空 -->
+    </div>
+
+    <div id="settings-icon" title="管理后台"></div>
+    <div id="settings-menu" class="settings-menu">
+        <div class="settings-menu-item" id="admin-entry">进入后台</div>
+        <div class="settings-menu-item" id="dark-mode-toggle">深色模式</div>
+    </div>
+
+    <div id="userInfo">
+        <h2>正在加载用户信息...</h2>
+        <img id="avatar" style="display: none;">
+        <p id="userName" style="font-size: 18px;"></p>
+        <p id="userDept" style="font-size: 16px; color: #666;"></p>
+    </div>
+
+    <div id="points" onclick="window.location.href='points_history.php?employee_id=' + employeeId"></div>
+
+    <div id="giftList">
+        <h3>积分商城</h3>
+        <div id="giftItems"></div>
+    </div>
+
+    <div id="orderSection">
+        <div id="orderToggle">查看兑换订单</div>
+        <div id="orderList"></div>
+    </div>
+
+    <div class="footer">
+        <span id="footer">Power By Grok 3</span>
+    </div>
+
+    <div id="tooltip" class="tooltip">嗯哼？</div>
+
+    <script>
+        // 应用主题函数
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.body.classList.toggle('dark-mode', isDark);
+            localStorage.setItem('themeMode', isDark ? 'dark' : 'light');
+            document.getElementById('dark-mode-toggle').textContent = isDark ? '浅色模式' : '深色模式';
+        }
+
+        // 初始化主题
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('themeMode');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsIcon = document.getElementById('settings-icon');
+            const settingsMenu = document.getElementById('settings-menu');
+            const adminEntry = document.getElementById('admin-entry');
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const footer = document.getElementById('footer');
+            const tooltip = document.getElementById('tooltip');
+
+            // 初始化主题
+            initializeTheme();
+
+            settingsIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!settingsMenu.contains(e.target) && e.target !== settingsIcon) {
+                    settingsMenu.style.display = 'none';
+                }
+            });
+
+            adminEntry.addEventListener('click', function() {
+                settingsMenu.style.display = 'none';
+                dd.runtime.permission.requestAuthCode({
+                    corpId: "",
+                    onSuccess: function(info) {
+                        $.ajax({
+                            url: 'checkAdmin.php',
+                            type: 'POST',
+                            data: { code: info.code },
+                            success: function(response) {
+                                let data = JSON.parse(response);
+                                console.log('管理员验证返回:', data);
+                                if (data.errcode === 0 && data.is_admin) {
+                                    window.location.href = '/admin/index.php';
+                                } else {
+                                    alert('诶嘿，不让你进');
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                alert('验证管理员权限失败：' + error);
+                            }
+                        });
+                    },
+                    onFail: function(err) {
+                        alert('获取授权码失败：' + JSON.stringify(err));
+                    }
+                });
+            });
+
+            darkModeToggle.addEventListener('click', function() {
+                const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+                settingsMenu.style.display = 'none';
+            });
+
+            footer.addEventListener('click', showTooltip);
+            footer.addEventListener('touchstart', showTooltip);
+
+            function showTooltip(event) {
+                console.log('Footer clicked or touched!');
+                const footerRect = footer.getBoundingClientRect();
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${footerRect.left + (footerRect.width / 2) - (tooltip.offsetWidth / 2)}px`;
+                tooltip.style.bottom = `${window.innerHeight - footerRect.top + 5}px`;
+                setTimeout(() => {
+                    tooltip.style.display = 'none';
+                }, 2000);
+            }
+        });
+
+        let employeeId = null;
+        dd.ready(function() {
+            // 初始隐藏一言文字
+            $('#hitokoto').hide();
+
+            // 获取一言
+            $.ajax({
+                url: 'https://v1.hitokoto.cn/',
+                type: 'GET',
+                success: function(data) {
+                    $('#hitokoto').text(data.hitokoto).show();
+                },
+                error: function() {
+                    $('#hitokoto').text('生活是属于每个人自己的感受，不属于任何别人的看法。').show();
+                }
+            });
+
+            dd.runtime.permission.requestAuthCode({
+                corpId: "",
+                onSuccess: function(info) {
+                    $.ajax({
+                        url: 'getUserInfo.php',
+                        type: 'POST',
+                        data: { code: info.code },
+                        success: function(response) {
+                            let data = JSON.parse(response);
+                            console.log('后端返回数据:', data);
+                            if (data.errcode === 0) {
+                                $('#avatar').attr('src', data.avatar).show().on('error', function() {
+                                    $(this).attr('src', './uploads/20250311154809.jpg');
+                                });
+                                $('#userName').text('欢迎您：' + data.name);
+                                $('#userDept').text('部门：' + (data.department && data.department.length > 0 ? data.department.join(', ') : '未分配部门'));
+                                $('#userInfo h2').hide();
+                                $('#points').text('当前积分: ' + data.points);
+                                employeeId = data.employee_id;
+
+                                $.ajax({
+                                    url: 'getGifts.php',
+                                    type: 'GET',
+                                    success: function(giftResponse) {
+                                        let giftData = JSON.parse(giftResponse);
+                                        if (giftData.errcode === 0) {
+                                            let giftHtml = '';
+                                            giftData.gifts.forEach(gift => {
+                                                giftHtml += `
+                                                    <div class="gift-item" onclick="window.location.href='gift_detail.html?gift_id=${gift.gift_id}&employee_id=' + employeeId">
+                                                        <img src="${gift.gift_image}" alt="${gift.gift_name}">
+                                                        <div>
+                                                            <p>${gift.gift_name}</p>
+                                                            <p>所需积分: ${gift.gift_points}</p>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            });
+                                            $('#giftItems').html(giftHtml);
+                                        }
+
+                                        $.ajax({
+                                            url: 'getOrders.php',
+                                            type: 'POST',
+                                            data: { employee_id: employeeId },
+                                            success: function(orderResponse) {
+                                                let orderData = JSON.parse(orderResponse);
+                                                if (orderData.errcode === 0) {
+                                                    let orderHtml = '';
+                                                    orderData.orders.forEach(order => {
+                                                        orderHtml += `
+                                                            <div class="order-item">
+                                                                <div>订单号: ${order.redemption_id}</div>
+                                                                <div>礼品: ${order.gift_name}</div>
+                                                                <div>积分: ${order.points_deducted}</div>
+                                                                <div>日期: ${order.redemption_date}</div>
+                                                                <div>状态: ${order.redemption_status}</div>
+                                                            </div>
+                                                        `;
+                                                    });
+                                                    $('#orderList').html(orderHtml);
+                                                }
+                                                $('#loadingOverlay').fadeOut(300, function() {
+                                                    $(this).remove();
+                                                });
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error('获取订单失败:', error);
+                                                $('#loadingOverlay').fadeOut(300, function() {
+                                                    $(this).remove();
+                                                });
+                                            }
+                                        });
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('获取礼品失败:', error);
+                                        $.ajax({
+                                            url: 'getOrders.php',
+                                            type: 'POST',
+                                            data: { employee_id: employeeId },
+                                            success: function(orderResponse) {
+                                                let orderData = JSON.parse(orderResponse);
+                                                if (orderData.errcode === 0) {
+                                                    let orderHtml = '';
+                                                    orderData.orders.forEach(order => {
+                                                        orderHtml += `
+                                                            <div class="order-item">
+                                                                <div>订单号: ${order.redemption_id}</div>
+                                                                <div>礼品: ${order.gift_name}</div>
+                                                                <div>积分: ${order.points_deducted}</div>
+                                                                <div>日期: ${order.redemption_date}</div>
+                                                                <div>状态: ${order.redemption_status}</div>
+                                                            </div>
+                                                        `;
+                                                    });
+                                                    $('#orderList').html(orderHtml);
+                                                }
+                                                $('#loadingOverlay').fadeOut(300, function() {
+                                                    $(this).remove();
+                                                });
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error('获取订单失败:', error);
+                                                $('#loadingOverlay').fadeOut(300, function() {
+                                                    $(this).remove();
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            } else {
+                                alert('获取用户信息失败：' + data.errmsg);
+                                $('#loadingOverlay').fadeOut(300, function() {
+                                    $(this).remove();
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            alert('请求用户信息失败：' + error);
+                            $('#loadingOverlay').fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                        }
+                    });
+                },
+                onFail: function(err) {
+                    alert('获取授权码失败：' + JSON.stringify(err));
+                    $('#loadingOverlay').fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }
+            });
+
+            $('#orderToggle').click(function() {
+                $('#orderList').toggle();
+            });
+        });
+    </script>
+</body>
+</html>

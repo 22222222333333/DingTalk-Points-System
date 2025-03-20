@@ -1,0 +1,5 @@
+{
+    "require": {
+        "mingyoung/dingtalk": "^2.0"
+    }
+}
