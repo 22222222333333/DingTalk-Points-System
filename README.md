@@ -25,3 +25,7 @@ $appSecret = '';
 index.html中也有部分需要填写corpId，自行搜索
 
 数据库结构文件在jifen_hantwo_cn.sql里面
+
+![image](https://github.com/user-attachments/assets/4346ea2d-56d1-44be-8b9e-2e764b3c4e85)
+![image](https://github.com/user-attachments/assets/d2430849-a02c-4908-a0cc-e16227d7c5d9)
+
